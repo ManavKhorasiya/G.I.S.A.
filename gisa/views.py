@@ -12,6 +12,8 @@ import base64
 import io
 import PIL
 import numpy as np
+import requests
+from flask import jsonify
 import os
 from project.settings import BASE_DIR
 from project.settings import MEDIA_DIR
@@ -22,6 +24,11 @@ import threading
 import gzip
 from threading import Thread, Lock
 _db_lock = Lock()
+
+
+url = 'http://127.0.0.1:8000'
+
+default = {'H_l': 0, 'S_l': 0, 'V_l': 0, 'H_h': 255, 'S_h': 255, 'V_h': 255}
 
 def home_view(request):
     return render(request, 'home.html')
@@ -316,6 +323,7 @@ def gen(camera):
 def livepage(request):
     try:
         print('here')
+        print(type(gen(VideoCamera())))
         return StreamingHttpResponse(gen(VideoCamera()), content_type="multipart/x-mixed-replace; boundary=frame")
         # return render(response, 'live.html')
         # return(resp, 'live.html')
@@ -458,7 +466,144 @@ def segment_it(request):
     return render(request, 'segment.html', context_dict)
 
 
+def grab_json(url):
+    resp = requests.get(url=url)
+    dic = resp.json()
+    return dic
+
+def segmenting_live(request):
+    model_path = os.path.join(BASE_DIR, '01resnet.model')
+    model = load_model(model_path, compile = False)
+    cx=100
+    cy=100
+    rw=300
+    rh=300
+    if request.method == 'POST' :
+        data_send = default
+        cap = cv2.VideoCapture(1)
+        # resp = requests.post('http://127.0.0.1:8000/jsondata', data = data_send)
+        while True :
+            # resp = requests.post('http://127.0.0.1:8000/jsondata', data = data_send)
+            # cap = cv2.VideoCapture(0)
+            # ret, frame = cap.read()
+            print('inside true')
+            ret, frame = cap.read()
+            # dic = grab_json('http://127.0.0.1:8000/jsondata')
+            # if dic == None:
+            #     raise Exception("Dic is none!")
+            # H_l = int(dic['H_l'])
+            # S_l = int(dic['S_l'])
+            # V_l = int(dic['V_l'])
+            # H_h = int(dic['H_h'])
+            # S_h = int(dic['S_h'])
+            # V_h = int(dic['V_h'])
+            yield(b'--frame\r\n'
+                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+
+    elif request.is_ajax() :
+        print("ajax one!")
+        H_l = request.GET.get('H_l')
+        S_l = request.GET.get('S_l')
+        V_l = request.GET.get('V_l')
+        H_h = request.GET.get('H_h')
+        S_h = request.GET.get('S_h')
+        V_h = request.GET.get('V_h')
+        
+        print("high values")
+        print('hue : {} \n saturation: {} \n value : {}\n'.format( H_h, S_h, V_h))
+        print("low values")
+        print('hue : {} \n saturation: {} \n value : {}\n'.format(H_l, S_l, V_l))
+        
+        cap = cv2.VideoCapture(0)
+        while True:
+            ret, frame = cap.read()
+            hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+            low = np.array([H_l,S_l,V_l])
+            high = np.array([H_h,S_h,V_h])
+            print("LOW" + str(low))
+            print("HIGH" + str(high))
+            image_mask = cv2.inRange(hsv,low,high)
+            output1 = cv2.bitwise_and(frame,frame,mask = image_mask)
+            pre = output1[cx:rw, cy:rh]
+            dist = func(frame)
+            category = "Sign Language Number"
+            prediction = model.predict([prepare(dist, category)])
+            prediction=np.argmax(prediction)
+            x1=str(prediction)
+            print('x1 is : ' + x1)
+            cv2.putText(frame,x1,(60,80),cv2.FONT_HERSHEY_SIMPLEX,3.0,(255,255,255),lineType=cv2.LINE_AA)
+            cv2.rectangle(frame,(cx,cy),(cx+rw,cy+rh),(255,255,255),5)
+            cv2.putText(output1,x1,(60,80),cv2.FONT_HERSHEY_SIMPLEX,3.0,(255,255,255),lineType=cv2.LINE_AA)
+            cv2.rectangle(output1,(cx,cy),(cx+rw,cy+rh),(255,255,255),5)
+
+            _, buffer_frame = cv2.imencode('.jpg', frame)
+            f_frame = buffer_frame.tobytes()
+            yield(b'--frame\r\n'
+                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+
+def stream_func(camera, H_l,S_l,V_l,H_h,S_h,V_h):
+    print('inside stream func')
+    model_path = os.path.join(BASE_DIR, '01resnet.model')
+    model = load_model(model_path, compile = False)
+    cx=100
+    cy=100
+    rw=300
+    rh=300
+    # cap = cv2.VideoCapture(1)
+    while True:
+        frame = cam.get_frame()
+        # ret,frame = cap.read()
+        print("high values")
+        print('hue : {} \n saturation: {} \n value : {}\n'.format( H_h, S_h, V_h))
+        print("low values")
+        print('hue : {} \n saturation: {} \n value : {}\n'.format(H_l, S_l, V_l))
+        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        low = np.array([H_l,S_l,V_l])
+        high = np.array([H_h,S_h,V_h])
+        print("LOW" + str(low))
+        print("HIGH" + str(high))
+        image_mask = cv2.inRange(hsv,low,high)
+        output1 = cv2.bitwise_and(frame,frame,mask = image_mask)
+        pre = output1[cx:rw, cy:rh]
+        dist = func(frame)
+        category = "Sign Language Number"
+        prediction = model.predict([prepare(dist, category)])
+        prediction=np.argmax(prediction)
+        x1=str(prediction)
+        print('x1 is : ' + x1)
+        cv2.putText(frame,x1,(60,80),cv2.FONT_HERSHEY_SIMPLEX,3.0,(255,255,255),lineType=cv2.LINE_AA)
+        cv2.rectangle(frame,(cx,cy),(cx+rw,cy+rh),(255,255,255),5)
+        cv2.putText(output1,x1,(60,80),cv2.FONT_HERSHEY_SIMPLEX,3.0,(255,255,255),lineType=cv2.LINE_AA)
+        cv2.rectangle(output1,(cx,cy),(cx+rw,cy+rh),(255,255,255),5)
+
+        _, buffer_frame = cv2.imencode('.jpg', frame)
+        f_frame = buffer_frame.tobytes()
+        yield(b'--frame\r\n'
+            b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+
+                
 def segment_live(request):
+    try:
+        print('inside try')
+        # if request.method == 'POST' :
+        #     print('inside request=post')
+        #     return StreamingHttpResponse(gen(VideoCamera()), content_type="multipart/x-mixed-replace; boundary=frame")
+        # elif request.is_ajax() :
+        print("ajax one!")
+        H_l = request.GET.get('H_l')
+        S_l = request.GET.get('S_l')
+        V_l = request.GET.get('V_l')
+        H_h = request.GET.get('H_h')
+        S_h = request.GET.get('S_h')
+        V_h = request.GET.get('V_h')
+        
+        return StreamingHttpResponse(stream_func(VideoCamera(), H_l,S_l,V_l,H_h,S_h,V_h), content_type="multipart/x-mixed-replace; boundary=frame")
+
+    except:  # This is bad! replace it with proper handling
+        print('Exception occurred')
+        pass
+
+def button_segment_live(request) :
     submitbutton = request.POST.get('Submit')
     print(submitbutton)
     if submitbutton:
@@ -466,3 +611,28 @@ def segment_live(request):
     else:
         context = {'submitbutton' : None}
     return render(request, 'live_segment.html', context)
+
+def live_test1():
+    cap = cv2.VideoCapture(1)
+    while True:
+        ret,frame = cap.read()
+        yield(b'--frame\r\n'
+              b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+
+def live_test2(request):
+    try:
+        print('Tryin')
+        return StreamingHttpResponse(live_test1(), content_type="multipart/x-mixed-replace; boundary=frame")
+    except:
+        print('error')
+
+
+def jsondata(request):
+    if request.method == 'POST':
+        global abc
+        abc = request.form.to_dict()
+        print('Data: ' + abc)
+        if abc == None:
+            raise Exception("Cant get data")
+        else:
+            return render(request, jsonify(abc))

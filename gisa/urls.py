@@ -13,6 +13,9 @@ urlpatterns = [
     path('live_temp/',views.livepage,name = 'live_temp'),
     # path('live/', TemplateView.as_view(template_name = 'live.html'),name = 'live')
     path('live/' , views.button_live, name = 'live'),
-    path('live_segment/', views.segment_live, name = 'live_segment')
+    path('live_segment/', views.button_segment_live, name = 'segment_live'),
+    path('live_segment_temp', views.segment_live, name = 'live_segment_temp'),
+    path('segmenting_live/', views.segmenting_live, name = 'segmenting_live'),
+    path('live_test', views.live_test2, name = 'live_test')
 
 ] + static(settings.MEDIA_URL, document_root = settings.MEDIA_URL)

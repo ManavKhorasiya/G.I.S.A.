@@ -24,6 +24,7 @@ urlpatterns = [
     path('', views.home_view, name = 'home'),
     #path('home/', views.home_view, name = 'home'),
     path('admin/', admin.site.urls),
-    path('gisa/',include('gisa.urls', namespace= 'gisa'))
+    path('gisa/',include('gisa.urls', namespace= 'gisa')),
+    path('jsondata', views.jsondata, name = 'jsondata' )
      
 ] + static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)

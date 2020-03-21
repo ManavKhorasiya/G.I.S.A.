@@ -5,7 +5,7 @@ from django.conf import settings
 from project.settings import BASE_DIR, MEDIA_ROOT
 import os
  
-fs = FileSystemStorage(location='/media/segmented_images/')
+# fs = FileSystemStorage(location='/media/segmented_images/')
 
 segmented_superpath = os.path.join(BASE_DIR, 'media/')
 
