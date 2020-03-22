@@ -1,4 +1,4 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from .models import Image,segment
 import cv2
@@ -93,62 +93,6 @@ def prepare(ima , category):
     print('prepared image shape' + str(new_array.shape))
     return new_array
 
-def skin_DT(image):  
-    print('skin_dt image : ' + str(type(image)))
-    hsv=cv2.cvtColor(image,cv2.COLOR_BGR2HSV)
-    print('h')
-    ycbcr=cv2.cvtColor(image, cv2.COLOR_BGR2YCrCb)
-    print('f')
-    b,g,r=cv2.split(image)
-    y,cr,cb=cv2.split(ycbcr)
-    h,s,v=cv2.split(hsv)
-    # print('h = ' + str(h))
-    # print('s = ' + str(s))
-    # print('v = ' + str(v))
-    s=s/(h+s+v)
-    # h=h/(h+s+v)
-    # v=v/(h+s+v)
-    ans=((0<=h)*(h<=50)*(0.23<s)*(s<0.68)*(r>95)*(g>40)*(b>20)*(r>g)*(r>b)*(abs(r-g)>15))+((r>95)*(g>40)*(b>20)*(r>g)*(r>b)*(abs(r-g)>15)*(cr>135)*(cb>85)*(y>80)*(cr<=(1.5862*cb+20))*(cr>=(0.3448*cb+76.2069))*(cr>=(-4.5652*cb+234.5652))*(cr<=-1.15*cb+301.75)*(cr<=-2.2857*cb+432.85))
-    b=b*ans
-    g=g*ans
-    r=r*ans
-    new=cv2.merge((b,g,r))
-    ans=ans*255
-    new1=cv2.merge((ans,ans,ans))
-    print('new1 shape:' + str(new1.shape))
-    cv2.imwrite("media/uploaded_images/test.jpeg",new1)
-    print('written')
-    new1=cv2.imread("media/uploaded_images/test.jpeg")
-    new1 = cv2.cvtColor(new1, cv2.COLOR_BGR2GRAY)
-    print('new1 shape: ' + str(new1.shape))
-    print('d')
-    dist = cv2.distanceTransform(new1, cv2.DIST_L2, 5)
-    cv2.normalize(dist, dist, 0, 1.0, cv2.NORM_MINMAX)
-    print('out of dt')
-    return dist 
-
-# def predict_image(image, category, name_image):
-#     try :
-#         print('Inside predict_image shape : ' + str(image.shape))
-#         model_path = os.path.join(BASE_DIR,'01resnet.model')
-#         model = load_model(model_path, compile=False)
-#         image1 = image.copy()
-#         print('Image1 shape' + str(image1.shape))
-#         dist = skin_DT(image)       #(200,200)
-#         prediction = model.predict(prepare(dist,category))
-#         prediction=np.argmax(prediction)
-#         x1=prediction
-#         try:
-#             cv2.putText(image1,str(x1),(60,60),cv2.FONT_HERSHEY_SIMPLEX,3.0,(255,0,0),lineType=cv2.LINE_AA)
-#         except:
-#             print("Variable x1 is not empty")
-#         _,buffer_image1 = cv2.imencode('.jpg', image1)
-#         f_image1 = buffer_image1.tobytes()
-#         f1 = ContentFile(f_image1)
-#         image_file = File(f1, name = name_image )
-#         return image_file,x1
-#     except Exception as e:
-#         print(e)
 def func(image):
     new1 = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     dist = cv2.distanceTransform(new1, cv2.DIST_L2, 5)
@@ -251,84 +195,52 @@ def formpage(request):
         else:
             print(image_form.errors)
 
-
-    # elif request.is_ajax():
-    #     print("ajax one!")
-    #     # High bar values
-    #     hue_amount_h = request.GET.get('h_value_h')
-    #     saturation_amount_h = request.GET.get('s_value_h')
-    #     value_amount_h = request.GET.get('v_value_h')
-
-    #     # low bar values
-    #     hue_amount_l = request.GET.get('h_value_l')
-    #     saturation_amount_l = request.GET.get('s_value_l')
-    #     value_amount_l = request.GET.get('v_value_l')
-
-    #     print("high values")
-    #     print('hue : {} \n saturation: {} \n value : {}\n'.format( hue_amount_h, saturation_amount_h, value_amount_h))
-    #     print("low values")
-    #     print('hue : {} \n saturation: {} \n value : {}\n'.format(hue_amount_l, saturation_amount_l, value_amount_l))
-
-    #     if flag:
-    #         print("changing Image")
-    #         im = do_segmentation(hue_amount_l, saturation_amount_l, value_amount_l,
-    #                              hue_amount_h, saturation_amount_h, value_amount_h, target_image, name_image)
-    #         if im:
-    #             s = Image.objects.get(Id=image_id)
-    #             s.uploads = im
-    #             s.save()
-    #             img_add = s.uploads.url
-    #             return HttpResponse(img_add)
-    #         else:
-    #             print("Image not available")
-    #             context_dict = {'segment_form': temp_form}
-    #     else:
-    #             print("ajax request not maintained properly")
-    #             context_dict = {'segment_form': temp_form}
-
-
     else:
         image_form = forms.ImageForm()
         context_dict = {'form' : image_form, 'temp_form' : temp_form}
     print(context_dict)
     return render(request,'predict.html',context = context_dict)
 
-class VideoCamera(object):
-    def __init__(self):
-        self.video = cv2.VideoCapture(1)
-        (self.grabbed, self.frame) = self.video.read()
-        threading.Thread(target=self.update, args=()).start()
+# class VideoCamera(object):
+#     def __init__(self):
+#         self.video = cv2.VideoCapture(1)
+#         (self.grabbed, self.frame) = self.video.read()
+#         threading.Thread(target=self.update, args=()).start()
 
-    def __del__(self):
-        self.video.release()
+#     def __del__(self):
+#         self.video.release()
 
-    def get_frame(self):
-        image = self.frame
-        ret, jpeg = cv2.imencode('.jpg', image)
-        return jpeg.tobytes()
+#     def get_frame(self):
+#         image = self.frame
+#         ret, jpeg = cv2.imencode('.jpg', image)
+#         return jpeg.tobytes()
 
-    def update(self):
-        while True:
-            (self.grabbed, self.frame) = self.video.read()
+#     def update(self):
+#         while True:
+#             (self.grabbed, self.frame) = self.video.read()
 
-cam = VideoCamera()
+global cam
+# cam = VideoCamera()
+cap = cv2.VideoCapture(1)
 
-def gen(camera):
+def gen():
     while True:
-        frame = cam.get_frame()
+        _,frame = cap.read()
+        _, buffer_frame = cv2.imencode('.jpg', frame)
+        f_frame = buffer_frame.tobytes()
         yield(b'--frame\r\n'
-              b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+              b'Content-Type: image/jpeg\r\n\r\n' + f_frame + b'\r\n\r\n')
 
 # @gzip.gzip_page
 def livepage(request):
     try:
         print('here')
-        print(type(gen(VideoCamera())))
-        return StreamingHttpResponse(gen(VideoCamera()), content_type="multipart/x-mixed-replace; boundary=frame")
+        # print(type(gen(VideoCamera())))
+        return StreamingHttpResponse(gen(), content_type="multipart/x-mixed-replace; boundary=frame")
         # return render(response, 'live.html')
         # return(resp, 'live.html')
-    except:  # This is bad! replace it with proper handling
-        print('Exception occurred')
+    except Exception as e:  # This is bad! replace it with proper handling
+        print(e)
         pass
     
     
@@ -541,7 +453,7 @@ def segmenting_live(request):
             yield(b'--frame\r\n'
                 b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
-def stream_func(camera, H_l,S_l,V_l,H_h,S_h,V_h):
+def stream_func(H_l,S_l,V_l,H_h,S_h,V_h):
     print('inside stream func')
     model_path = os.path.join(BASE_DIR, '01resnet.model')
     model = load_model(model_path, compile = False)
@@ -551,12 +463,100 @@ def stream_func(camera, H_l,S_l,V_l,H_h,S_h,V_h):
     rh=300
     # cap = cv2.VideoCapture(1)
     while True:
-        frame = cam.get_frame()
-        # ret,frame = cap.read()
+        # frame = cam.get_frame()
+        _,frame = cap.read()
         print("high values")
         print('hue : {} \n saturation: {} \n value : {}\n'.format( H_h, S_h, V_h))
         print("low values")
         print('hue : {} \n saturation: {} \n value : {}\n'.format(H_l, S_l, V_l))
+        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        low = np.array([H_l,S_l,V_l])
+        high = np.array([H_h,S_h,V_h])
+        print("LOW" + str(low))
+        print("HIGH" + str(high))
+        image_mask = cv2.inRange(hsv,low,high)
+        output1 = cv2.bitwise_and(frame,frame,mask = image_mask)
+        # pre = output1[cx:rw, cy:rh]
+        # dist = func(frame)
+        # category = "Sign Language Number"
+        # prediction = model.predict([prepare(dist, category)])
+        # prediction=np.argmax(prediction)
+        # x1=str(prediction)
+        # print('x1 is : ' + x1)
+        # cv2.putText(frame,x1,(60,80),cv2.FONT_HERSHEY_SIMPLEX,3.0,(255,255,255),lineType=cv2.LINE_AA)
+        cv2.rectangle(frame,(cx,cy),(cx+rw,cy+rh),(255,255,255),5)
+        # cv2.putText(output1,x1,(60,80),cv2.FONT_HERSHEY_SIMPLEX,3.0,(255,255,255),lineType=cv2.LINE_AA)
+        cv2.rectangle(output1,(cx,cy),(cx+rw,cy+rh),(255,255,255),5)
+
+        _, buffer_frame = cv2.imencode('.jpg', frame)
+        f_frame = buffer_frame.tobytes()
+        yield(b'--frame\r\n'
+            b'Content-Type: image/jpeg\r\n\r\n' + f_frame + b'\r\n\r\n')
+
+                
+def segment_live(request):
+    try:
+        print('inside try')
+        # if request.method == 'POST' :
+        #     print('inside request=post')
+        #     return StreamingHttpResponse(gen(VideoCamera()), content_type="multipart/x-mixed-replace; boundary=frame")
+        # elif request.is_ajax() :
+        print("ajax one!")
+        H_l = request.GET.get('H_l')
+        S_l = request.GET.get('S_l')
+        V_l = request.GET.get('V_l')
+        H_h = request.GET.get('H_h')
+        S_h = request.GET.get('S_h')
+        V_h = request.GET.get('V_h')
+        if H_l is None:
+            H_l = 0
+        if S_l is None:
+            S_l = 0
+        if V_l is None:
+            V_l = 0
+        if H_h is None:
+            H_h = 255
+        if S_h is None:
+            S_h = 255
+        if V_h is None:
+            V_h = 255 
+        
+        if H_l is not None:
+            if H_l != 0:
+                print('receiving  values!')
+
+        return StreamingHttpResponse(stream_func(H_l,S_l,V_l,H_h,S_h,V_h), content_type="multipart/x-mixed-replace; boundary=frame")
+
+    except:  # This is bad! replace it with proper handling
+        print('Exception occurred')
+        pass
+
+def gen_frames():
+    print('inside gen_frames')
+    data_send = default
+    resp = requests.post(url + '/jsondata', data = data_send)
+    model_path = os.path.join(BASE_DIR, '01resnet.model')
+    model = load_model(model_path, compile = False)
+    cx=100
+    cy=100
+    rw=300
+    rh=300
+    while True:
+        frame = cam.get_frame()
+        dic = grab_json(url + '/jsondata')
+        if dic == None:
+            raise Exception("dic is none!")
+        H_l = int(dic['H_l'])
+        S_l = int(dic['S_l'])
+        V_l = int(dic['V_l'])
+        H_h = int(dic['H_h'])
+        S_h = int(dic['S_h'])
+        V_h = int(dic['V_h'])
+        print("high values")
+        print('hue : {} \n saturation: {} \n value : {}\n'.format( H_h, S_h, V_h))
+        print("low values")
+        print('hue : {} \n saturation: {} \n value : {}\n'.format(H_l, S_l, V_l))
+        
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         low = np.array([H_l,S_l,V_l])
         high = np.array([H_h,S_h,V_h])
@@ -579,28 +579,13 @@ def stream_func(camera, H_l,S_l,V_l,H_h,S_h,V_h):
         _, buffer_frame = cv2.imencode('.jpg', frame)
         f_frame = buffer_frame.tobytes()
         yield(b'--frame\r\n'
-            b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+            b'Content-Type: image/jpeg\r\n\r\n' + f_frame + b'\r\n\r\n')
 
-                
-def segment_live(request):
+def seg_live_test(request):
     try:
-        print('inside try')
-        # if request.method == 'POST' :
-        #     print('inside request=post')
-        #     return StreamingHttpResponse(gen(VideoCamera()), content_type="multipart/x-mixed-replace; boundary=frame")
-        # elif request.is_ajax() :
-        print("ajax one!")
-        H_l = request.GET.get('H_l')
-        S_l = request.GET.get('S_l')
-        V_l = request.GET.get('V_l')
-        H_h = request.GET.get('H_h')
-        S_h = request.GET.get('S_h')
-        V_h = request.GET.get('V_h')
-        
-        return StreamingHttpResponse(stream_func(VideoCamera(), H_l,S_l,V_l,H_h,S_h,V_h), content_type="multipart/x-mixed-replace; boundary=frame")
-
-    except:  # This is bad! replace it with proper handling
-        print('Exception occurred')
+        return StreamingHttpResponse(gen_frames(), content_type="multipart/x-mixed-replace; boundary=frame")
+    except:
+        print("Exception occurred")
         pass
 
 def button_segment_live(request) :
@@ -612,27 +597,13 @@ def button_segment_live(request) :
         context = {'submitbutton' : None}
     return render(request, 'live_segment.html', context)
 
-def live_test1():
-    cap = cv2.VideoCapture(1)
-    while True:
-        ret,frame = cap.read()
-        yield(b'--frame\r\n'
-              b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
-
-def live_test2(request):
-    try:
-        print('Tryin')
-        return StreamingHttpResponse(live_test1(), content_type="multipart/x-mixed-replace; boundary=frame")
-    except:
-        print('error')
-
-
 def jsondata(request):
-    if request.method == 'POST':
-        global abc
-        abc = request.form.to_dict()
-        print('Data: ' + abc)
-        if abc == None:
-            raise Exception("Cant get data")
-        else:
-            return render(request, jsonify(abc))
+    print('insdie json req post')
+    global abc
+    print(request)
+    # abc = request.form.to_dict()
+    print('Data: ' + abc)
+    if abc == None:
+        raise Exception("Cant get data")
+    else:
+        return JsonResponse(abc)

@@ -65,7 +65,7 @@ if(hue_lower != null ) {
 
         $.ajax({
             type : 'POST',
-            url : "http://127.0.0.1:8000/jsondata",
+            url : "http://127.0.0.1:8000/jsondata/",
             data : data_out,
             success : function() {
                 console.log('Slider value sent success');
@@ -94,7 +94,7 @@ $('.slider').on("input", function () {
 
     $.ajax({
         type : 'POST',
-        url : "/jsondata",
+        url : "http://127.0.0.1:8000/jsondata/",
         data : data_out,
         success : function() {
             console.log('Slider value sent success');
