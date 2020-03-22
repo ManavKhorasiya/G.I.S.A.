@@ -453,22 +453,19 @@ def segmenting_live(request):
             yield(b'--frame\r\n'
                 b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
+def callback(x):
+    pass
+
 def stream_func(H_l,S_l,V_l,H_h,S_h,V_h):
     print('inside stream func')
-    model_path = os.path.join(BASE_DIR, '01resnet.model')
-    model = load_model(model_path, compile = False)
+    # model_path = os.path.join(BASE_DIR, '01resnet.model')
+    # model = load_model(model_path, compile = False)
     cx=100
     cy=100
     rw=300
     rh=300
-    # cap = cv2.VideoCapture(1)
     while True:
-        # frame = cam.get_frame()
         _,frame = cap.read()
-        print("high values")
-        print('hue : {} \n saturation: {} \n value : {}\n'.format( H_h, S_h, V_h))
-        print("low values")
-        print('hue : {} \n saturation: {} \n value : {}\n'.format(H_l, S_l, V_l))
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         low = np.array([H_l,S_l,V_l])
         high = np.array([H_h,S_h,V_h])
@@ -476,6 +473,7 @@ def stream_func(H_l,S_l,V_l,H_h,S_h,V_h):
         print("HIGH" + str(high))
         image_mask = cv2.inRange(hsv,low,high)
         output1 = cv2.bitwise_and(frame,frame,mask = image_mask)
+        print('modifying')
         # pre = output1[cx:rw, cy:rh]
         # dist = func(frame)
         # category = "Sign Language Number"
@@ -484,11 +482,11 @@ def stream_func(H_l,S_l,V_l,H_h,S_h,V_h):
         # x1=str(prediction)
         # print('x1 is : ' + x1)
         # cv2.putText(frame,x1,(60,80),cv2.FONT_HERSHEY_SIMPLEX,3.0,(255,255,255),lineType=cv2.LINE_AA)
-        cv2.rectangle(frame,(cx,cy),(cx+rw,cy+rh),(255,255,255),5)
+        # cv2.rectangle(frame,(cx,cy),(cx+rw,cy+rh),(255,255,255),5)
         # cv2.putText(output1,x1,(60,80),cv2.FONT_HERSHEY_SIMPLEX,3.0,(255,255,255),lineType=cv2.LINE_AA)
         cv2.rectangle(output1,(cx,cy),(cx+rw,cy+rh),(255,255,255),5)
 
-        _, buffer_frame = cv2.imencode('.jpg', frame)
+        _, buffer_frame = cv2.imencode('.jpg', output1)
         f_frame = buffer_frame.tobytes()
         yield(b'--frame\r\n'
             b'Content-Type: image/jpeg\r\n\r\n' + f_frame + b'\r\n\r\n')
@@ -523,12 +521,28 @@ def segment_live(request):
         
         if H_l is not None:
             if H_l != 0:
-                print('receiving  values!')
+                H_l = int(H_l)
+        if S_l is not None:
+            if S_l != 0:
+                S_l = int(S_l)
+        if V_l is not None:
+            if V_l != 0:
+                V_l = int(V_l)
+        if H_h is not None:
+            if H_h != 0:
+                H_h = int(H_h)
+        if S_h is not None:
+            if S_h != 0:
+                S_h = int(S_h)
+        if V_h is not None:
+            if V_h != 0:
+                V_h = int(V_h)
+                
 
         return StreamingHttpResponse(stream_func(H_l,S_l,V_l,H_h,S_h,V_h), content_type="multipart/x-mixed-replace; boundary=frame")
 
-    except:  # This is bad! replace it with proper handling
-        print('Exception occurred')
+    except Exception as e:  # This is bad! replace it with proper handling
+        print(e)
         pass
 
 def gen_frames():

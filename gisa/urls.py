@@ -17,6 +17,6 @@ urlpatterns = [
     path('live_segment_temp', views.segment_live, name = 'live_segment_temp'),
     path('segmenting_live/', views.segmenting_live, name = 'segmenting_live'),
     path('seg_live_test/', views.seg_live_test, name = 'seg_live_test')
-    # path('live_test', views.live_test2, name = 'live_test')
+    
 
 ] + static(settings.MEDIA_URL, document_root = settings.MEDIA_URL)

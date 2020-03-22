@@ -36,13 +36,13 @@
     </div>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script type="text/javascript">
-        $('.slider').on("input", function () {
-            var hue_lower = document.getElementById("myRangeHh").value;
-            var saturation_lower = document.getElementById('myRangeSh').value;
-            var value_lower = document.getElementById('myRangeVh').value;
-            var hue_higher = document.getElementById("myRangeHl").value;
-            var saturation_higher = document.getElementById('myRangeSl').value;
-            var value_higher = document.getElementById('myRangeVl').value;
+        $('.slider').on("input", function (e) {
+            var hue_lower = document.getElementById("myRangeHl").value;
+            var saturation_lower = document.getElementById('myRangeSl').value;
+            var value_lower = document.getElementById('myRangeVl').value;
+            var hue_higher = document.getElementById("myRangeHh").value;
+            var saturation_higher = document.getElementById('myRangeSh').value;
+            var value_higher = document.getElementById('myRangeVh').value;
             
             var data_out = {
             "H_l" : hue_lower,
@@ -54,23 +54,23 @@
             "V_h" : value_higher
             }
 
-            console.log(data_out)
+            // console.log(data_out)
 
-            $.ajax({
+            $.ajax( {
                 method : 'GET',
                 url : '{% url "gisa:live_segment_temp" %}',
                 data : data_out,
                 datatype : 'json',
-                success : function() {
+                success : function(data_out) {
                     console.log('Slider value sent success');
                 },
                 error : function() {
                     console.log("Error during ajax post");
                 }
             });
-        }
-</script>
-// <!-- <script type = "text/javascript" src = "../main.js"></script> -->
+        })
+    </script>
+<!-- <script type = "text/javascript" src = "../main.js"></script> -->
 {% endblock %}
 </body> 
 </html> 
