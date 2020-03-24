@@ -1,0 +1,37 @@
+{%  extends 'base.html' %}
+{% load staticfiles %}
+{% block body_block %}
+
+<!-- Three -->
+<section id="three" class="wrapper align-center">
+<div class="inner">
+<div class="flex flex-2">
+	<article style="width: 50%; float: left;">
+		<div class="image round">
+			<img src="{% static 'images/pic01.jpg' %}" alt="Pic 01" />
+		</div>
+		<header>
+			<h3>Static</h3>
+		</header>
+		<p>Predict the gesture using static images</p>
+		<footer>
+			<a href="{% url 'gisa:form' %}" class="button">Predict</a>
+		</footer>
+	</article>
+	<article style="width: 50%; float: left;">
+		<div class="image round">
+			<img src="{% static 'images/pic02.jpg' %}" alt="Pic 02" />
+		</div>
+		<header>
+			<h3>Video Capture</h3>
+		</header>
+		<p>Predict the gesture using live feed</p>
+		<footer>
+			<a href="predict-live.html" class="button">Predict</a>
+		</footer>
+	</article>
+</div>
+</div>
+</section>
+
+{% endblock %}

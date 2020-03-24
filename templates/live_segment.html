@@ -1,40 +1,57 @@
 {% extends 'base.html' %}
-<!DOCTYPE html> 
-<html lang="en"> 
-<head> 
-    <meta charset="UTF-8"> 
-    <title>Welcome to GISA</title> 
-    <!-- <style>
-        #my_image {
-            display: none;
-        }
-    </style> -->
-</head> 
-<body>
-    {% block body_block %} 
-    <form method = "post" enctype="multipart/form-data"> 
-        {% csrf_token %} 
-        {{ form.as_p }} 
-        <input type="Submit" name="submit" value="Submit"/>
-    </form> 
-    {% if not submitbutton %}
-    <img src = "{% url 'gisa:live_segment_temp' %}" alt="original image" id = "my_image">
-    {% endif %}
-    <div class = "slidecontainer">
-        <label for="myRangeHl" >Hue(lower bound):<span id="hue_l_op"></span></label>
-        <input type="range" min="0" max="255" value="0" class="slider" id="myRangeHl"><br><br>
-        <label for="myRangeSl" >Saturation(lower bound): <span id="saturation_l_op"></span></label>
-        <input type="range" min="0" max="255" value="0" class="slider" id="myRangeSl"><br><br>
-        <label for="myRangeVl" >value(lower bound): <span id="value_l_op"></span></label>
-        <input type="range" min="0" max="255" value="0" class="slider" id="myRangeVl"><br><br>
-        <label for="myRangeHh">Hue(upper bound): <span id="hue_h_op"></span></label>
-        <input type="range" min="0" max="255" value="255" class="slider" id="myRangeHh" ><br><br>
-        <label for="myRangeSh" >Saturation(upper bound): <span id="saturation_h_op"></span></label>
-        <input type="range" min="0" max="255" value="255" class="slider" id="myRangeSh"><br><br>
-        <label for="myRangeVh" >Value(upper bound):<span id="value_h_op"></span></label>
-        <input type="range" min="0" max="255" value="255" class="slider" id="myRangeVh"><br><br>
-    </div>
-    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+{% load staticfiles %}
+
+{% block body_block %}
+<style>
+	img {
+		margin-top: 1%;
+		margin-left: 25%;
+		margin-right: 25%;
+		border-radius: 30px;
+		width: 50%;
+		border: 10px solid transparent;
+		padding: 5px;
+		border-image: url("{% static 'images/border.png' %}") 30 stretch;
+    }
+    #id_predictIt {
+					width : 50px;
+					font-size: large;
+					
+				}
+				ul {
+					text-align: center;
+					display: inline-block;
+					margin : 0px;
+					padding: 0px;
+					/* margin-left: 80%;      200px */
+					/* align-self: center;
+					align-content: center; */
+				}
+</style>
+<form method = "post" enctype="multipart/form-data"> 
+	{% csrf_token %} 
+	{{ form.as_p }} 
+	<!-- <input type="Submit" name="submit" value="Submit" style="margin-top: 5%;"/> -->
+</form> 
+{% if not submitbutton %}
+<img src = "{% url 'gisa:live_temp' %}" alt="original image" id = "my_image">
+{% endif %}
+<div class = "slidecontainer">
+    <label for="myRangeHl" >Hue(lower bound):<span id="hue_l_op"></span></label>
+    <input type="range" min="0" max="255" value="0" class="slider" id="myRangeHl"><br><br>
+    <label for="myRangeSl" >Saturation(lower bound): <span id="saturation_l_op"></span></label>
+    <input type="range" min="0" max="255" value="0" class="slider" id="myRangeSl"><br><br>
+    <label for="myRangeVl" >value(lower bound): <span id="value_l_op"></span></label>
+    <input type="range" min="0" max="255" value="0" class="slider" id="myRangeVl"><br><br>
+    <label for="myRangeHh">Hue(upper bound): <span id="hue_h_op"></span></label>
+    <input type="range" min="0" max="255" value="255" class="slider" id="myRangeHh" ><br><br>
+    <label for="myRangeSh" >Saturation(upper bound): <span id="saturation_h_op"></span></label>
+    <input type="range" min="0" max="255" value="255" class="slider" id="myRangeSh"><br><br>
+    <label for="myRangeVh" >Value(upper bound):<span id="value_h_op"></span></label>
+    <input type="range" min="0" max="255" value="255" class="slider" id="myRangeVh"><br><br>
+    <!-- <button type="button" class="btn-primary" onclick="window.location.href=window.location.href" style="width:300px;height:30px;margin-top:30px;margin-left: 50px;margin-bottom: 5%;">SAVE IT!</button> -->
+</div>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script type="text/javascript">
         $('.slider').on("input", function (e) {
             var hue_lower = document.getElementById("myRangeHl").value;
@@ -63,6 +80,7 @@
                 datatype : 'json',
                 success : function(data_out) {
                     console.log('Slider value sent success');
+                    location.reload();
                 },
                 error : function() {
                     console.log("Error during ajax post");
@@ -72,5 +90,3 @@
     </script>
 <!-- <script type = "text/javascript" src = "../main.js"></script> -->
 {% endblock %}
-</body> 
-</html> 

@@ -9,6 +9,7 @@ app_name = 'gisa'
 
 urlpatterns = [
     path('form/',views.formpage,name = 'form'),
+    path('predict/', views.predict_menu,name = 'menu'),
     path('segment/',views.segment_it,name = 'segment'),
     path('live_temp/',views.livepage,name = 'live_temp'),
     # path('live/', TemplateView.as_view(template_name = 'live.html'),name = 'live')

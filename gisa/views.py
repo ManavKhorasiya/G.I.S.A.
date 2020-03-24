@@ -33,6 +33,9 @@ default = {'H_l': 0, 'S_l': 0, 'V_l': 0, 'H_h': 255, 'S_h': 255, 'V_h': 255}
 def home_view(request):
     return render(request, 'home.html')
 
+def predict_menu(request):
+    return render(request, 'elements.html')
+
 def do_segmentation(h_l, s_l, v_l, h_h, s_h, v_h, target_image,name_image):
     print('inside do_segmentation function')
     print("high values")
@@ -199,7 +202,7 @@ def formpage(request):
         image_form = forms.ImageForm()
         context_dict = {'form' : image_form, 'temp_form' : temp_form}
     print(context_dict)
-    return render(request,'predict.html',context = context_dict)
+    return render(request,'hello.html',context = context_dict)
 
 # class VideoCamera(object):
 #     def __init__(self):
@@ -375,7 +378,7 @@ def segment_it(request):
         context_dict = {'segment_form': sform, 'temp_form' : tform}
     
     print("final context_dict = {}".format(context_dict))
-    return render(request, 'segment.html', context_dict)
+    return render(request, 'segment_it.html', context_dict)
 
 
 def grab_json(url):
@@ -486,8 +489,11 @@ def stream_func(H_l,S_l,V_l,H_h,S_h,V_h):
         # cv2.putText(output1,x1,(60,80),cv2.FONT_HERSHEY_SIMPLEX,3.0,(255,255,255),lineType=cv2.LINE_AA)
         cv2.rectangle(output1,(cx,cy),(cx+rw,cy+rh),(255,255,255),5)
 
-        _, buffer_frame = cv2.imencode('.jpg', output1)
+        _, buffer_frame = cv2.imencode('.jpeg', output1)
         f_frame = buffer_frame.tobytes()
+        # cv2.imshow("output1", output1)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
         yield(b'--frame\r\n'
             b'Content-Type: image/jpeg\r\n\r\n' + f_frame + b'\r\n\r\n')
 
@@ -615,7 +621,7 @@ def jsondata(request):
     print('insdie json req post')
     global abc
     print(request)
-    # abc = request.form.to_dict()
+    abc = request.form.to_dict()
     print('Data: ' + abc)
     if abc == None:
         raise Exception("Cant get data")

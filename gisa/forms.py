@@ -13,8 +13,8 @@ class ImageForm(forms.ModelForm):
 #         fields = '__all__'
 class TempForm(forms.Form):
     select_choices = [
-        ('yes','yes'),
-        ('no','no')
+        ('yes','Yes'),
+        ('no','No')
     ]
     predictIt = forms.CharField(label = "Click button to predict", widget = forms.RadioSelect(choices = select_choices))
 
