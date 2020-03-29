@@ -204,27 +204,7 @@ def formpage(request):
     print(context_dict)
     return render(request,'hello.html',context = context_dict)
 
-# class VideoCamera(object):
-#     def __init__(self):
-#         self.video = cv2.VideoCapture(1)
-#         (self.grabbed, self.frame) = self.video.read()
-#         threading.Thread(target=self.update, args=()).start()
-
-#     def __del__(self):
-#         self.video.release()
-
-#     def get_frame(self):
-#         image = self.frame
-#         ret, jpeg = cv2.imencode('.jpg', image)
-#         return jpeg.tobytes()
-
-#     def update(self):
-#         while True:
-#             (self.grabbed, self.frame) = self.video.read()
-
-global cam
-# cam = VideoCamera()
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 
 def gen():
     while True:
@@ -395,7 +375,7 @@ def segmenting_live(request):
     rh=300
     if request.method == 'POST' :
         data_send = default
-        cap = cv2.VideoCapture(1)
+        cap = cv2.VideoCapture(0)
         # resp = requests.post('http://127.0.0.1:8000/jsondata', data = data_send)
         while True :
             # resp = requests.post('http://127.0.0.1:8000/jsondata', data = data_send)
@@ -454,15 +434,15 @@ def segmenting_live(request):
             _, buffer_frame = cv2.imencode('.jpg', frame)
             f_frame = buffer_frame.tobytes()
             yield(b'--frame\r\n'
-                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+                b'Content-Type: image/jpeg\r\n\r\n' + f_frame + b'\r\n\r\n')
 
 def callback(x):
     pass
 
 def stream_func(H_l,S_l,V_l,H_h,S_h,V_h):
     print('inside stream func')
-    # model_path = os.path.join(BASE_DIR, '01resnet.model')
-    # model = load_model(model_path, compile = False)
+    model_path = os.path.join(BASE_DIR, '01resnet.model')
+    model = load_model(model_path, compile = False)
     cx=100
     cy=100
     rw=300
@@ -476,10 +456,10 @@ def stream_func(H_l,S_l,V_l,H_h,S_h,V_h):
         print("HIGH" + str(high))
         image_mask = cv2.inRange(hsv,low,high)
         output1 = cv2.bitwise_and(frame,frame,mask = image_mask)
-        print('modifying')
+        # print('modifying')
         # pre = output1[cx:rw, cy:rh]
         # dist = func(frame)
-        # category = "Sign Language Number"
+        # category = "Number"
         # prediction = model.predict([prepare(dist, category)])
         # prediction=np.argmax(prediction)
         # x1=str(prediction)
@@ -609,7 +589,7 @@ def seg_live_test(request):
         pass
 
 def button_segment_live(request) :
-    submitbutton = request.POST.get('Submit')
+    submitbutton = request.POST.get('submit')
     print(submitbutton)
     if submitbutton:
         context = {'submitbutton' : submitbutton}

@@ -33,8 +33,8 @@
 	{{ form.as_p }} 
 	<!-- <input type="Submit" name="submit" value="Submit" style="margin-top: 5%;"/> -->
 </form> 
-{% if not submitbutton %}
-<img src = "{% url 'gisa:live_temp' %}" alt="original image" id = "my_image">
+{% if submitbutton %}
+<img src = "{% url 'gisa:live_segment_temp' %}" alt="original image" id = "my_image">
 {% endif %}
 <div class = "slidecontainer">
     <label for="myRangeHl" >Hue(lower bound):<span id="hue_l_op"></span></label>
