@@ -33,7 +33,7 @@
 	{{ form.as_p }} 
 	<!-- <input type="Submit" name="submit" value="Submit" style="margin-top: 5%;"/> -->
 </form> 
-{% if submitbutton %}
+{% if not submitbutton %}
 <img src = "{% url 'gisa:live_segment_temp' %}" alt="original image" id = "my_image">
 {% endif %}
 <div class = "slidecontainer">
