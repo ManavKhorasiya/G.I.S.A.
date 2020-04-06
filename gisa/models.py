@@ -10,12 +10,12 @@ import os
 segmented_superpath = os.path.join(BASE_DIR, 'media/')
 
 class OverwriteStorage(FileSystemStorage):
-
+    #overwriting image files with same name
     def get_available_name(self, name, max_length = None):
         if self.exists(name):
-            folder = os.path.join(MEDIA_ROOT, 'segmented_images/')
             os.remove(os.path.join(settings.MEDIA_ROOT, name))
         return name
+
 
 class Image(models.Model) :
     IMAGE_CHOICES = [
@@ -35,4 +35,4 @@ class segment(models.Model):
         ('Alphabet', 'Sign Language Alphabet')
     ]
     category = models.CharField(max_length = 256,default = 'Sign Language Hand Gesture Digit',choices = IMAGE_CHOICES)
-    uploads = ResizedImageField(size = [200,200],upload_to = 'segmented_images/', blank = True, storage=OverwriteStorage())
+    uploads = ResizedImageField(size = [200,200],upload_to = 'segmented_images/', blank = True) #, storage=OverwriteStorage())

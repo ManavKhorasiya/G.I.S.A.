@@ -13,46 +13,49 @@
 		padding: 5px;
 		border-image: url("{% static 'images/border.png' %}") 30 stretch;
     }
-    #id_predictIt {
-					width : 50px;
-					font-size: large;
-					
-				}
-				ul {
-					text-align: center;
-					display: inline-block;
-					margin : 0px;
-					padding: 0px;
-					/* margin-left: 80%;      200px */
-					/* align-self: center;
-					align-content: center; */
-				}
 </style>
-<form method = "post" enctype="multipart/form-data"> 
-	{% csrf_token %} 
-	{{ form.as_p }} 
-	<!-- <input type="Submit" name="submit" value="Submit" style="margin-top: 5%;"/> -->
-</form> 
-{% if not submitbutton %}
-<img src = "{% url 'gisa:live_segment_temp' %}" alt="original image" id = "my_image">
-{% endif %}
+
+<img src = "{% url 'gisa:video_feed' %}" alt="original image" id = "my_image">
+
 <div class = "slidecontainer">
-    <label for="myRangeHl" >Hue(lower bound):<span id="hue_l_op"></span></label>
-    <input type="range" min="0" max="255" value="0" class="slider" id="myRangeHl"><br><br>
-    <label for="myRangeSl" >Saturation(lower bound): <span id="saturation_l_op"></span></label>
-    <input type="range" min="0" max="255" value="0" class="slider" id="myRangeSl"><br><br>
-    <label for="myRangeVl" >value(lower bound): <span id="value_l_op"></span></label>
-    <input type="range" min="0" max="255" value="0" class="slider" id="myRangeVl"><br><br>
-    <label for="myRangeHh">Hue(upper bound): <span id="hue_h_op"></span></label>
-    <input type="range" min="0" max="255" value="255" class="slider" id="myRangeHh" ><br><br>
-    <label for="myRangeSh" >Saturation(upper bound): <span id="saturation_h_op"></span></label>
-    <input type="range" min="0" max="255" value="255" class="slider" id="myRangeSh"><br><br>
-    <label for="myRangeVh" >Value(upper bound):<span id="value_h_op"></span></label>
-    <input type="range" min="0" max="255" value="255" class="slider" id="myRangeVh"><br><br>
-    <!-- <button type="button" class="btn-primary" onclick="window.location.href=window.location.href" style="width:300px;height:30px;margin-top:30px;margin-left: 50px;margin-bottom: 5%;">SAVE IT!</button> -->
+    <div class="col-4">
+        <label for="output_hue_lower" class="slider_label "> Hue lower: </label><br>
+        <label for="output_saturation_lower" class="slider_label "> Saturation lower: </label><br>
+        <label for="output_value_lower" class="slider_label "> Value lower: </label><br>
+        <label for="output_hue_higher" class="slider_label "> Hue higher: </label><br>
+        <label for="output_saturation_higher" class="slider_label "> Saturation higher: </label><br>
+        <label for="output_value_higher" class="slider_label "> Value higher: </label><br>
+    </div>
+
+    <div class="col-8 ">
+        <span id="output_hue_lower" class="slider_output"></span>
+        <input type="range" min="0" max="255" value="0" class="slider" id="hue_lower"/> <br>
+
+
+        <span id="output_saturation_lower" class="slider_output"></span>
+        <input type="range" min="0" max="255" value="0" class="slider" id="saturation_lower"/> <br>
+
+
+        <span id="output_value_lower" class="slider_output"></span>
+        <input type="range" min="0" max="255" value="0" class="slider" id="value_lower"/> <br>
+        
+
+        <span id="output_hue_higher" class="slider_output"></span>
+        <input type="range" min="0" max="255" value="255" class="slider" id="hue_higher"/> <br>
+
+
+        <span id="output_saturation_higher" class="slider_output"></span>
+        <input type="range" min="0" max="255" value="255" class="slider" id="saturation_higher"/> <br>
+
+
+        <span id="output_value_higher" class="slider_output"></span>
+        <input type="range" min="0" max="255" value="255" class="slider" id="value_higher"/> <br>
+    </div>
+
 </div>
+<script type = "text/javascript" src = "/static/js/slider_value.js"></script>
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-    <script type="text/javascript">
+    <!-- <script type="text/javascript">
         $('.slider').on("input", function (e) {
             var hue_lower = document.getElementById("myRangeHl").value;
             var saturation_lower = document.getElementById('myRangeSl').value;
@@ -87,6 +90,6 @@
                 }
             });
         })
-    </script>
-<!-- <script type = "text/javascript" src = "../main.js"></script> -->
+    </script> -->
+
 {% endblock %}

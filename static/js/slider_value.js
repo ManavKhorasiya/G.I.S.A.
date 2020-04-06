@@ -1,4 +1,4 @@
-console.log('Reached inside main.js')
+console.log('Reached inside slider_value.js')
 
 var hue_lower = document.getElementById("hue_lower");
 var saturation_lower = document.getElementById("saturation_lower");
@@ -64,8 +64,8 @@ if(hue_lower != null ) {
         console.log(data_out)
 
         $.ajax({
-            type : 'POST',
-            url : "http://127.0.0.1:8000/jsondata/",
+            type : 'GET',
+            url : '{% url "jsondata" %}',
             data : data_out,
             success : function() {
                 console.log('Slider value sent success');
@@ -90,11 +90,11 @@ $('.slider').on("input", function () {
         "V_h" : $("value_higher").val()
     }
 
-    console.log(data_out)
+    // console.log(data_out)
 
     $.ajax({
-        type : 'POST',
-        url : "http://127.0.0.1:8000/jsondata/",
+        type : 'GET',
+        url : '{% url "jsondata" %}',
         data : data_out,
         success : function() {
             console.log('Slider value sent success');

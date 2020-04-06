@@ -26,7 +26,7 @@ from threading import Thread, Lock
 _db_lock = Lock()
 
 
-url = 'http://127.0.0.1:8000'
+url = 'http://127.0.0.1:8000/'
 
 default = {'H_l': 0, 'S_l': 0, 'V_l': 0, 'H_h': 255, 'S_h': 255, 'V_h': 255}
 
@@ -43,7 +43,7 @@ def do_segmentation(h_l, s_l, v_l, h_h, s_h, v_h, target_image,name_image):
     print("low values")
     print('hue : {} \n saturation: {} \n value : {}\n'.format(h_l, s_l, v_l))
 
-    target_image = PIL.Image.open(target_image)
+    # target_image = PIL.Image.open(target_image)
     target_image = np.float32(target_image)
     print('Target image type : ' + str(type(target_image)))
     print('Target_immage shape : ' + str(target_image.shape))
@@ -242,6 +242,7 @@ def segment_it(request):
     global image_id
     global category
     global orig_img
+    global g_img
     sform = forms.segmentForm()
     tform = forms.TempForm({'predictIt' : 'no'})
     modified_image = Image()
@@ -294,20 +295,22 @@ def segment_it(request):
 
                     target_image = PIL.Image.open(io.BytesIO(image_byte))
                     target_image = target_image.resize((200,200),PIL.Image.ANTIALIAS)
-                #   target_image = prepare(target_image, category)
+                    g_img = target_image
                     target_image = np.array(target_image)
                     
                     #segmented_image_showing = do_segmentation(hue_amount_l, saturation_amount_l, value_amount_l,hue_amount_h, saturation_amount_h, value_amount_h, temp_image)
                     flag = 1
-                    s_image.uploads = sform.cleaned_data['uploads']
-                    s_image.category = sform.cleaned_data['category']
-                    s_image.save()
-                    print('image saved')
-                    #img_add = s_image.Image.url
-                    s_obj = segment.objects.filter().order_by('-id')[0]
-                    image_id = s_obj.id
-                    print("image id = {}".format(image_id))
-                    context_dict = {'segment_form': sform, 'image_show':s_image, 'temp_form' : tform}
+                    if 'uploads' in request.FILES:
+                        s_image.uploads = sform.cleaned_data['uploads']
+                        s_image.category = sform.cleaned_data['category']
+                        s_image.save()
+                        print('image saved')
+                        #img_add = s_image.Image.url
+                        s_obj = segment.objects.filter().order_by('-id')[0]
+                        global image_id
+                        image_id = s_obj.id
+                        print("image id = {}".format(image_id))
+                        context_dict = {'segment_form': sform, 'image_show':s_image, 'temp_form' : tform}
        
     elif request.is_ajax():
         print("ajax one!")
@@ -326,10 +329,11 @@ def segment_it(request):
         print('hue : {} \n saturation: {} \n value : {}\n'.format(hue_amount_l, saturation_amount_l, value_amount_l))
 
         img_obj = segment.objects.filter().order_by('-id')[0]
-        target_image = img_obj.uploads
+        print('target image name: ' + img_obj.uploads.name)
+        target_image = g_img
         orig_img = target_image
-        if np.array(PIL.Image.open(target_image)).any() :
-            print('Not none in target_image')
+        # if np.array(PIL.Image.open(target_image)).any() :
+        #     print('Not none in target_image')
         name_image = img_obj.uploads.name
 
         if flag:
@@ -339,9 +343,15 @@ def segment_it(request):
             print('Im type : ' + str(type(im)))
             if im:
                 s = segment.objects.get(id=image_id)
+                # s = segment()
                 s.uploads = im      #overwrite image
-                # s.category = category
+                s.uploads.name = s.uploads.name[17:]
+                print('name of image: ' + s.uploads.name)
+                print('url is : ' + s.uploads.url)
+                s.category = category
+                print('category is: ' + s.category)
                 s.save()
+                # cv2.imwrite(s.uploads.name, s.uploads.url)
                 img_add = s.uploads.url
                 return HttpResponse(img_add)
             else:
@@ -365,6 +375,22 @@ def grab_json(url):
     resp = requests.get(url=url)
     dic = resp.json()
     return dic
+
+def jsondata(request):
+    if request.method == 'POST':
+        print('insdie json req post')
+        global abc
+        print(request.GET)
+        abc = request.GET.to_dict()
+        print('Data: ' + abc)
+        if abc == None:
+            raise Exception("Cant get data")
+        return HttpResponse('OK')
+    else:
+        print("GET req")
+        return JsonResponse(abc)
+    
+    
 
 def segmenting_live(request):
     model_path = os.path.join(BASE_DIR, '01resnet.model')
@@ -455,6 +481,7 @@ def stream_func(H_l,S_l,V_l,H_h,S_h,V_h):
         print("LOW" + str(low))
         print("HIGH" + str(high))
         image_mask = cv2.inRange(hsv,low,high)
+        global output1
         output1 = cv2.bitwise_and(frame,frame,mask = image_mask)
         # print('modifying')
         # pre = output1[cx:rw, cy:rh]
@@ -470,6 +497,7 @@ def stream_func(H_l,S_l,V_l,H_h,S_h,V_h):
         cv2.rectangle(output1,(cx,cy),(cx+rw,cy+rh),(255,255,255),5)
 
         _, buffer_frame = cv2.imencode('.jpeg', output1)
+        global f_frame
         f_frame = buffer_frame.tobytes()
         # cv2.imshow("output1", output1)
         # cv2.waitKey(0)
@@ -534,7 +562,7 @@ def segment_live(request):
 def gen_frames():
     print('inside gen_frames')
     data_send = default
-    resp = requests.post(url + '/jsondata', data = data_send)
+    resp = requests.post(url + 'jsondata/', data = data_send)
     model_path = os.path.join(BASE_DIR, '01resnet.model')
     model = load_model(model_path, compile = False)
     cx=100
@@ -542,8 +570,8 @@ def gen_frames():
     rw=300
     rh=300
     while True:
-        frame = cam.get_frame()
-        dic = grab_json(url + '/jsondata')
+        _,frame = cap.read()
+        dic = grab_json(url + 'jsondata/')
         if dic == None:
             raise Exception("dic is none!")
         H_l = int(dic['H_l'])
@@ -564,19 +592,20 @@ def gen_frames():
         print("HIGH" + str(high))
         image_mask = cv2.inRange(hsv,low,high)
         output1 = cv2.bitwise_and(frame,frame,mask = image_mask)
-        pre = output1[cx:rw, cy:rh]
-        dist = func(frame)
-        category = "Sign Language Number"
-        prediction = model.predict([prepare(dist, category)])
-        prediction=np.argmax(prediction)
-        x1=str(prediction)
-        print('x1 is : ' + x1)
-        cv2.putText(frame,x1,(60,80),cv2.FONT_HERSHEY_SIMPLEX,3.0,(255,255,255),lineType=cv2.LINE_AA)
-        cv2.rectangle(frame,(cx,cy),(cx+rw,cy+rh),(255,255,255),5)
-        cv2.putText(output1,x1,(60,80),cv2.FONT_HERSHEY_SIMPLEX,3.0,(255,255,255),lineType=cv2.LINE_AA)
+        # pre = output1[cx:rw, cy:rh]
+        # dist = func(frame)
+        # category = "Sign Language Number"
+        # prediction = model.predict([prepare(dist, category)])
+        # prediction=np.argmax(prediction)
+        # x1=str(prediction)
+        # print('x1 is : ' + x1)
+        # cv2.putText(frame,x1,(60,80),cv2.FONT_HERSHEY_SIMPLEX,3.0,(255,255,255),lineType=cv2.LINE_AA)
+        # cv2.rectangle(frame,(cx,cy),(cx+rw,cy+rh),(255,255,255),5)
+        # cv2.putText(output1,x1,(60,80),cv2.FONT_HERSHEY_SIMPLEX,3.0,(255,255,255),lineType=cv2.LINE_AA)
         cv2.rectangle(output1,(cx,cy),(cx+rw,cy+rh),(255,255,255),5)
 
-        _, buffer_frame = cv2.imencode('.jpg', frame)
+        _, buffer_frame = cv2.imencode('.jpg', output1)
+        global f_frame
         f_frame = buffer_frame.tobytes()
         yield(b'--frame\r\n'
             b'Content-Type: image/jpeg\r\n\r\n' + f_frame + b'\r\n\r\n')
@@ -589,21 +618,11 @@ def seg_live_test(request):
         pass
 
 def button_segment_live(request) :
-    submitbutton = request.POST.get('submit')
-    print(submitbutton)
-    if submitbutton:
-        context = {'submitbutton' : submitbutton}
-    else:
-        context = {'submitbutton' : None}
-    return render(request, 'live_segment.html', context)
+    # submitbutton = request.POST.get('submit')
+    # print(submitbutton)
+    # if submitbutton:
+    #     context = {'submitbutton' : submitbutton}
+    # else:
+    #     context = {'submitbutton' : None}
+    return render(request, 'live_segment.html')#, context)
 
-def jsondata(request):
-    print('insdie json req post')
-    global abc
-    print(request)
-    abc = request.form.to_dict()
-    print('Data: ' + abc)
-    if abc == None:
-        raise Exception("Cant get data")
-    else:
-        return JsonResponse(abc)
