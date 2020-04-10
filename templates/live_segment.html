@@ -15,81 +15,70 @@
     }
 </style>
 
-<img src = "{% url 'gisa:video_feed' %}" alt="original image" id = "my_image">
+<form method = "POST" enctype="multipart/form-data"> 
+    {% csrf_token %} 
+    {{ segment_form.as_p }} 
+    <button type="submit">Start</button> 
+</form> 
+
+{% if submitbutton %}
+    <img src = "{% url 'gisa:live_segment_temp' %}" alt="original image" id="seg_image">
+{% endif %}
 
 <div class = "slidecontainer">
-    <div class="col-4">
-        <label for="output_hue_lower" class="slider_label "> Hue lower: </label><br>
-        <label for="output_saturation_lower" class="slider_label "> Saturation lower: </label><br>
-        <label for="output_value_lower" class="slider_label "> Value lower: </label><br>
-        <label for="output_hue_higher" class="slider_label "> Hue higher: </label><br>
-        <label for="output_saturation_higher" class="slider_label "> Saturation higher: </label><br>
-        <label for="output_value_higher" class="slider_label "> Value higher: </label><br>
-    </div>
-
-    <div class="col-8 ">
-        <span id="output_hue_lower" class="slider_output"></span>
-        <input type="range" min="0" max="255" value="0" class="slider" id="hue_lower"/> <br>
-
-
-        <span id="output_saturation_lower" class="slider_output"></span>
-        <input type="range" min="0" max="255" value="0" class="slider" id="saturation_lower"/> <br>
-
-
-        <span id="output_value_lower" class="slider_output"></span>
-        <input type="range" min="0" max="255" value="0" class="slider" id="value_lower"/> <br>
-        
-
-        <span id="output_hue_higher" class="slider_output"></span>
-        <input type="range" min="0" max="255" value="255" class="slider" id="hue_higher"/> <br>
-
-
-        <span id="output_saturation_higher" class="slider_output"></span>
-        <input type="range" min="0" max="255" value="255" class="slider" id="saturation_higher"/> <br>
-
-
-        <span id="output_value_higher" class="slider_output"></span>
-        <input type="range" min="0" max="255" value="255" class="slider" id="value_higher"/> <br>
-    </div>
-
+    <label for="myRangeHl" >Hue(lower bound):<span id="hue_l_op"></span></label>
+    <input type="range" min="0" max="255" value="0" class="slider" id="myRangeHl"><br><br>
+    <label for="myRangeSl" >Saturation(lower bound): <span id="saturation_l_op"></span></label>
+    <input type="range" min="0" max="255" value="0" class="slider" id="myRangeSl"><br><br>
+    <label for="myRangeVl" >value(lower bound): <span id="value_l_op"></span></label>
+    <input type="range" min="0" max="255" value="0" class="slider" id="myRangeVl"><br><br>
+    <label for="myRangeHh">Hue(upper bound): <span id="hue_h_op"></span></label>
+    <input type="range" min="0" max="255" value="255" class="slider" id="myRangeHh" ><br><br>
+    <label for="myRangeSh" >Saturation(upper bound): <span id="saturation_h_op"></span></label>
+    <input type="range" min="0" max="255" value="255" class="slider" id="myRangeSh"><br><br>
+    <label for="myRangeVh" >Value(upper bound):<span id="value_h_op"></span></label>
+    <input type="range" min="0" max="255" value="255" class="slider" id="myRangeVh"><br><br>
 </div>
-<script type = "text/javascript" src = "/static/js/slider_value.js"></script>
+<!-- <script type = "text/javascript" src = "/static/js/slider_value.js"></script> -->
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-    <!-- <script type="text/javascript">
-        $('.slider').on("input", function (e) {
-            var hue_lower = document.getElementById("myRangeHl").value;
-            var saturation_lower = document.getElementById('myRangeSl').value;
-            var value_lower = document.getElementById('myRangeVl').value;
-            var hue_higher = document.getElementById("myRangeHh").value;
-            var saturation_higher = document.getElementById('myRangeSh').value;
-            var value_higher = document.getElementById('myRangeVh').value;
-            
-            var data_out = {
-            "H_l" : hue_lower,
-            "S_l" : saturation_lower,
-            "V_l" : value_lower,
+<script type="text/javascript">
 
-            "H_h" : hue_higher,
-            "S_h" : saturation_higher,
-            "V_h" : value_higher
-            }
+    function refreshImage(imgElement,imgURL){       
+    // create a new timestamp    
+    var timestamp = new Date().getTime();        
+    var el = document.getElementById(imgElement);      
+    var queryString = "?t=" + timestamp;           
+    el.src = imgURL + queryString;  
+    }
 
-            // console.log(data_out)
+    $('.slider').on("input", function(e) {
+        var h_v_h = document.getElementById("myRangeHh").value;
+        var s_v_h = document.getElementById('myRangeSh').value;
+        var v_v_h = document.getElementById('myRangeVh').value;
+        var h_v_l = document.getElementById("myRangeHl").value;
+        var s_v_l = document.getElementById('myRangeSl').value;
+        var v_v_l = document.getElementById('myRangeVl').value;
 
-            $.ajax( {
-                method : 'GET',
-                url : '{% url "gisa:live_segment_temp" %}',
-                data : data_out,
-                datatype : 'json',
-                success : function(data_out) {
-                    console.log('Slider value sent success');
-                    location.reload();
-                },
-                error : function() {
-                    console.log("Error during ajax post");
-                }
-            });
-        })
-    </script> -->
+        console.log('Inside the function!')
+        $.ajax( {
+            method : 'GET',
+            url : '{% url "gisa:live_segment_temp" %}',
+            data: {
+            'H_h' : h_v_h,
+            'S_h' : s_v_h,
+            'V_h' : v_v_h,
+            'H_l' : h_v_l,
+            'S_l' : s_v_l,
+            'V_l' : v_v_l,
+            },
+            datatype: 'json',
+            success: function(data){
+                console.log('Success!! Data is sent perfectly!');
+                console.log(data);
+                refreshImage("seg_image",data);
+            },
+        });
+    })
+</script> 
 
 {% endblock %}

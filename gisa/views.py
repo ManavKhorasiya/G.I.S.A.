@@ -508,7 +508,6 @@ def stream_func(H_l,S_l,V_l,H_h,S_h,V_h):
                 
 def segment_live(request):
     try:
-        print('inside try')
         # if request.method == 'POST' :
         #     print('inside request=post')
         #     return StreamingHttpResponse(gen(VideoCamera()), content_type="multipart/x-mixed-replace; boundary=frame")
@@ -618,11 +617,16 @@ def seg_live_test(request):
         pass
 
 def button_segment_live(request) :
-    # submitbutton = request.POST.get('submit')
-    # print(submitbutton)
-    # if submitbutton:
-    #     context = {'submitbutton' : submitbutton}
-    # else:
-    #     context = {'submitbutton' : None}
-    return render(request, 'live_segment.html')#, context)
+    if request.method == 'POST':
+        print('method is post')
+        context = {'submitbutton' : True}
+    else :
+        print('method is get')
+        submitbutton = request.POST.get('submit')
+        print(submitbutton)
+        if submitbutton:
+            context = {'submitbutton' : submitbutton}
+        else:
+            context = {'submitbutton' : None}
+    return render(request, 'live_segment.html', context)
 
