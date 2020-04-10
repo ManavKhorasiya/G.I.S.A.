@@ -22,8 +22,12 @@
 </form> 
 
 {% if submitbutton %}
-    <img src = "{% url 'gisa:live_segment_temp' %}" alt="original image" id="seg_image">
+    <img src = "{% url 'gisa:live_segment_temp' %}" alt="original image">
 {% endif %}
+
+<!-- {% if image_show.url %}
+    <img src = "{{ image_show.url }}" alt = "segmented image" id = "seg_image">
+{% endif %} -->
 
 <div class = "slidecontainer">
     <label for="myRangeHl" >Hue(lower bound):<span id="hue_l_op"></span></label>
@@ -51,7 +55,7 @@
     el.src = imgURL + queryString;  
     }
 
-    $('.slider').on("input", function(e) {
+    $('.slider').change( function(e) {
         var h_v_h = document.getElementById("myRangeHh").value;
         var s_v_h = document.getElementById('myRangeSh').value;
         var v_v_h = document.getElementById('myRangeVh').value;

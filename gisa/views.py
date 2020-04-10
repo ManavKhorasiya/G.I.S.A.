@@ -465,6 +465,14 @@ def segmenting_live(request):
 def callback(x):
     pass
 
+def stream_normal():
+    while True:
+        _,frame = cap.read()
+        _, buffer_frame = cv2.imencode('.jpeg', frame)
+        f_frame = buffer_frame.tobytes()
+        yield(b'--frame\r\n'
+            b'Content-Type: image/jpeg\r\n\r\n' + f_frame + b'\r\n\r\n')
+
 def stream_func(H_l,S_l,V_l,H_h,S_h,V_h):
     print('inside stream func')
     model_path = os.path.join(BASE_DIR, '01resnet.model')
@@ -482,6 +490,7 @@ def stream_func(H_l,S_l,V_l,H_h,S_h,V_h):
         print("HIGH" + str(high))
         image_mask = cv2.inRange(hsv,low,high)
         global output1
+        global segmented_live_img
         output1 = cv2.bitwise_and(frame,frame,mask = image_mask)
         # print('modifying')
         # pre = output1[cx:rw, cy:rh]
@@ -496,9 +505,11 @@ def stream_func(H_l,S_l,V_l,H_h,S_h,V_h):
         # cv2.putText(output1,x1,(60,80),cv2.FONT_HERSHEY_SIMPLEX,3.0,(255,255,255),lineType=cv2.LINE_AA)
         cv2.rectangle(output1,(cx,cy),(cx+rw,cy+rh),(255,255,255),5)
 
+        segmented_live_img = output1
         _, buffer_frame = cv2.imencode('.jpeg', output1)
         global f_frame
         f_frame = buffer_frame.tobytes()
+        cv2.imwrite(os.path.join(MEDIA_DIR,'temporary/temp.jpg'),output1)
         # cv2.imshow("output1", output1)
         # cv2.waitKey(0)
         # cv2.destroyAllWindows()
@@ -508,51 +519,52 @@ def stream_func(H_l,S_l,V_l,H_h,S_h,V_h):
                 
 def segment_live(request):
     try:
-        # if request.method == 'POST' :
-        #     print('inside request=post')
-        #     return StreamingHttpResponse(gen(VideoCamera()), content_type="multipart/x-mixed-replace; boundary=frame")
-        # elif request.is_ajax() :
-        print("ajax one!")
-        H_l = request.GET.get('H_l')
-        S_l = request.GET.get('S_l')
-        V_l = request.GET.get('V_l')
-        H_h = request.GET.get('H_h')
-        S_h = request.GET.get('S_h')
-        V_h = request.GET.get('V_h')
-        if H_l is None:
-            H_l = 0
-        if S_l is None:
-            S_l = 0
-        if V_l is None:
-            V_l = 0
-        if H_h is None:
-            H_h = 255
-        if S_h is None:
-            S_h = 255
-        if V_h is None:
-            V_h = 255 
-        
-        if H_l is not None:
-            if H_l != 0:
-                H_l = int(H_l)
-        if S_l is not None:
-            if S_l != 0:
-                S_l = int(S_l)
-        if V_l is not None:
-            if V_l != 0:
-                V_l = int(V_l)
-        if H_h is not None:
-            if H_h != 0:
-                H_h = int(H_h)
-        if S_h is not None:
-            if S_h != 0:
-                S_h = int(S_h)
-        if V_h is not None:
-            if V_h != 0:
-                V_h = int(V_h)
-                
+        if request.method == 'POST' :
+            print('inside request=post')
+            return StreamingHttpResponse(stream_normal(), content_type="multipart/x-mixed-replace; boundary=frame")
+        elif request.is_ajax() :
+            print("ajax one!")
+            global H_l,S_l,V_l,H_h,S_h,V_h
+            H_l = request.GET.get('H_l')
+            S_l = request.GET.get('S_l')
+            V_l = request.GET.get('V_l')
+            H_h = request.GET.get('H_h')
+            S_h = request.GET.get('S_h')
+            V_h = request.GET.get('V_h')
+            # if H_l is None:
+            #     H_l = 0
+            # if S_l is None:
+            #     S_l = 0
+            # if V_l is None:
+            #     V_l = 0
+            # if H_h is None:
+            #     H_h = 255
+            # if S_h is None:
+            #     S_h = 255
+            # if V_h is None:
+            #     V_h = 255 
+            
+            if H_l is not None:
+                if H_l != 0:
+                    H_l = int(H_l)
+            if S_l is not None:
+                if S_l != 0:
+                    S_l = int(S_l)
+            if V_l is not None:
+                if V_l != 0:
+                    V_l = int(V_l)
+            if H_h is not None:
+                if H_h != 0:
+                    H_h = int(H_h)
+            if S_h is not None:
+                if S_h != 0:
+                    S_h = int(S_h)
+            if V_h is not None:
+                if V_h != 0:
+                    V_h = int(V_h)
+                    
 
-        return StreamingHttpResponse(stream_func(H_l,S_l,V_l,H_h,S_h,V_h), content_type="multipart/x-mixed-replace; boundary=frame")
+            return StreamingHttpResponse(stream_func(H_l,S_l,V_l,H_h,S_h,V_h), content_type="multipart/x-mixed-replace; boundary=frame")
 
     except Exception as e:  # This is bad! replace it with proper handling
         print(e)
@@ -617,9 +629,10 @@ def seg_live_test(request):
         pass
 
 def button_segment_live(request) :
+    image_show = cv2.imread(os.path.join(MEDIA_DIR,'temporary/temp.jpg'))
     if request.method == 'POST':
         print('method is post')
-        context = {'submitbutton' : True}
+        context = {'submitbutton' : True, 'image_show' : image_show}
     else :
         print('method is get')
         submitbutton = request.POST.get('submit')
