@@ -518,53 +518,68 @@ def stream_func(H_l,S_l,V_l,H_h,S_h,V_h):
 
                 
 def segment_live(request):
+    global H_l,S_l,V_l,H_h,S_h,V_h
+    global H_l_old,S_l_old,V_l_old,H_h_old,S_h_old,V_h_old
+    H_l_old = 0
+    S_l_old = 0
+    V_l_old = 0
+    H_h_old = 255
+    S_h_old = 255
+    V_h_old = 255
     try:
-        if request.method == 'POST' :
-            print('inside request=post')
-            return StreamingHttpResponse(stream_normal(), content_type="multipart/x-mixed-replace; boundary=frame")
-        elif request.is_ajax() :
-            print("ajax one!")
-            global H_l,S_l,V_l,H_h,S_h,V_h
-            H_l = request.GET.get('H_l')
-            S_l = request.GET.get('S_l')
-            V_l = request.GET.get('V_l')
-            H_h = request.GET.get('H_h')
-            S_h = request.GET.get('S_h')
-            V_h = request.GET.get('V_h')
-            # if H_l is None:
-            #     H_l = 0
-            # if S_l is None:
-            #     S_l = 0
-            # if V_l is None:
-            #     V_l = 0
-            # if H_h is None:
-            #     H_h = 255
-            # if S_h is None:
-            #     S_h = 255
-            # if V_h is None:
-            #     V_h = 255 
-            
-            if H_l is not None:
-                if H_l != 0:
-                    H_l = int(H_l)
-            if S_l is not None:
-                if S_l != 0:
-                    S_l = int(S_l)
-            if V_l is not None:
-                if V_l != 0:
-                    V_l = int(V_l)
-            if H_h is not None:
-                if H_h != 0:
-                    H_h = int(H_h)
-            if S_h is not None:
-                if S_h != 0:
-                    S_h = int(S_h)
-            if V_h is not None:
-                if V_h != 0:
-                    V_h = int(V_h)
-                    
-
-            return StreamingHttpResponse(stream_func(H_l,S_l,V_l,H_h,S_h,V_h), content_type="multipart/x-mixed-replace; boundary=frame")
+        # if request.method == 'POST' :
+        #     print('inside request=post')
+        #     return StreamingHttpResponse(stream_normal(), content_type="multipart/x-mixed-replace; boundary=frame")
+        # elif request.is_ajax() :
+        print("ajax one!")
+        H_l = request.GET.get('H_l')
+        S_l = request.GET.get('S_l')
+        V_l = request.GET.get('V_l')
+        H_h = request.GET.get('H_h')
+        S_h = request.GET.get('S_h')
+        V_h = request.GET.get('V_h')
+        if H_l is None:
+            H_l = H_l_old
+        if S_l is None:
+            S_l = S_l_old
+        if V_l is None:
+            V_l = V_l_old
+        if H_h is None:
+            H_h = H_h_old
+        if S_h is None:
+            S_h = S_h_old
+        if V_h is None:
+            V_h = V_h_old
+        
+        if H_l is not None:
+            if H_l != 0:
+                H_l = int(H_l)
+                H_l_old = H_l
+        if S_l is not None:
+            if S_l != 0:
+                S_l = int(S_l)
+                S_l_old = S_l
+        if V_l is not None:
+            if V_l != 0:
+                V_l = int(V_l)
+                V_l_old = V_l
+        if H_h is not None:
+            if H_h != 0:
+                H_h = int(H_h)
+                H_h_old = H_h
+        if S_h is not None:
+            if S_h != 0:
+                S_h = int(S_h)
+                S_h_old = S_h
+        if V_h is not None:
+            if V_h != 0:
+                V_h = int(V_h)
+                V_h_old = V_h
+          
+        # if H_l is None:
+        #     return StreamingHttpResponse(stream_normal(),content_type="multipart/x-mixed-replace; boundary=frame") 
+        
+        return StreamingHttpResponse(stream_func(H_l,S_l,V_l,H_h,S_h,V_h), content_type="multipart/x-mixed-replace; boundary=frame")
 
     except Exception as e:  # This is bad! replace it with proper handling
         print(e)

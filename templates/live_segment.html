@@ -22,7 +22,7 @@
 </form> 
 
 {% if submitbutton %}
-    <img src = "{% url 'gisa:live_segment_temp' %}" alt="original image">
+    <img src = "{% url 'gisa:live_segment_temp' %}" alt="original image" id = "seg_image">
 {% endif %}
 
 <!-- {% if image_show.url %}
@@ -55,7 +55,7 @@
     el.src = imgURL + queryString;  
     }
 
-    $('.slider').change( function(e) {
+    $('.slider').on("input", function(e) {
         var h_v_h = document.getElementById("myRangeHh").value;
         var s_v_h = document.getElementById('myRangeSh').value;
         var v_v_h = document.getElementById('myRangeVh').value;
