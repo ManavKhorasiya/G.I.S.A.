@@ -15,6 +15,8 @@ import numpy as np
 import requests
 from flask import jsonify
 import os
+import datetime
+import time
 from project.settings import BASE_DIR
 from project.settings import MEDIA_DIR
 from django.core.files.base import ContentFile
@@ -482,6 +484,7 @@ def stream_func(H_l,S_l,V_l,H_h,S_h,V_h):
     rw=300
     rh=300
     while True:
+        begin = datetime.datetime.now()
         _,frame = cap.read()
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         low = np.array([H_l,S_l,V_l])
@@ -510,6 +513,14 @@ def stream_func(H_l,S_l,V_l,H_h,S_h,V_h):
         global f_frame
         f_frame = buffer_frame.tobytes()
         cv2.imwrite(os.path.join(MEDIA_DIR,'temporary/temp.jpg'),output1)
+        time_diff = datetime.datetime.now()-begin
+        time_diff = time_diff.total_seconds()
+        delay = 1000/30 - (time_diff)
+        time.sleep(delay/100)
+        # modified_frame = cv2.imread(os.path.join(MEDIA_DIR,'temporary/temp.jpg'))
+        # _,buffer_modified = cv2.imencode('.jpeg', modified_frame)
+        # global m_frame
+        # m_frame = buffer_modified.tobytes()
         # cv2.imshow("output1", output1)
         # cv2.waitKey(0)
         # cv2.destroyAllWindows()
@@ -519,13 +530,19 @@ def stream_func(H_l,S_l,V_l,H_h,S_h,V_h):
                 
 def segment_live(request):
     global H_l,S_l,V_l,H_h,S_h,V_h
-    global H_l_old,S_l_old,V_l_old,H_h_old,S_h_old,V_h_old
-    H_l_old = 0
-    S_l_old = 0
-    V_l_old = 0
-    H_h_old = 255
-    S_h_old = 255
-    V_h_old = 255
+    # H_l = 0
+    # S_l = 0
+    # V_l = 0
+    # H_h = 255
+    # S_h = 255
+    # V_h = 255
+    # global H_l_old,S_l_old,V_l_old,H_h_old,S_h_old,V_h_old
+    # H_l_old = 0
+    # S_l_old = 0
+    # V_l_old = 0
+    # H_h_old = 255
+    # S_h_old = 255
+    # V_h_old = 255
     try:
         # if request.method == 'POST' :
         #     print('inside request=post')
@@ -539,42 +556,42 @@ def segment_live(request):
         S_h = request.GET.get('S_h')
         V_h = request.GET.get('V_h')
         if H_l is None:
-            H_l = H_l_old
+            H_l = 0
         if S_l is None:
-            S_l = S_l_old
+            S_l = 0
         if V_l is None:
-            V_l = V_l_old
+            V_l = 0
         if H_h is None:
-            H_h = H_h_old
+            H_h = 255
         if S_h is None:
-            S_h = S_h_old
+            S_h = 255
         if V_h is None:
-            V_h = V_h_old
+            V_h = 255
         
         if H_l is not None:
             if H_l != 0:
                 H_l = int(H_l)
-                H_l_old = H_l
+                # H_l_old = H_l
         if S_l is not None:
             if S_l != 0:
                 S_l = int(S_l)
-                S_l_old = S_l
+                # S_l_old = S_l
         if V_l is not None:
             if V_l != 0:
                 V_l = int(V_l)
-                V_l_old = V_l
+                # V_l_old = V_l
         if H_h is not None:
             if H_h != 0:
                 H_h = int(H_h)
-                H_h_old = H_h
+                # H_h_old = H_h
         if S_h is not None:
             if S_h != 0:
                 S_h = int(S_h)
-                S_h_old = S_h
+                # S_h_old = S_h
         if V_h is not None:
             if V_h != 0:
                 V_h = int(V_h)
-                V_h_old = V_h
+                # V_h_old = V_h
           
         # if H_l is None:
         #     return StreamingHttpResponse(stream_normal(),content_type="multipart/x-mixed-replace; boundary=frame") 
