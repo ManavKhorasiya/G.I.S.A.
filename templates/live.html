@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block body_block %}
+<style>
+	img {
+		margin-top: 1%;
+		margin-left: 25%;
+		margin-right: 25%;
+		border-radius: 30px;
+		width: 50%;
+		border: 10px solid transparent;
+		padding: 5px;
+		border-image: url("{% static 'images/border.png' %}") 30 stretch;
+	}
+</style>
+<form method = "post" enctype="multipart/form-data"> 
+	{% csrf_token %} 
+	{{ form.as_p }} 
+	<!-- <input type="Submit" name="submit" value="Submit" style="margin-top: 5%;"/> -->
+</form> 
+{% if not submitbutton %}
+<img src = "{% url 'gisa:live_temp' %}" alt="original image" id = "my_image">
+{% endif %}
+{% endblock %}
